@@ -1,0 +1,103 @@
+
+CREATE DATABASE SistemaEducativo;
+
+USE SistemaEducativo;
+
+CREATE TABLE Estudiante (
+    idEstudiante INT IDENTITY(1,1) PRIMARY KEY,
+    nombre VARCHAR(100),
+    correo VARCHAR(100)
+);
+
+CREATE TABLE Profesor (
+    idProfesor INT IDENTITY(1,1) PRIMARY KEY,
+    nombre VARCHAR(100),
+    especialidad VARCHAR(100)
+);
+
+CREATE TABLE Curso (
+    idCurso INT IDENTITY(1,1) PRIMARY KEY,
+    nombre VARCHAR(100),
+    creditos INT
+);
+
+CREATE TABLE Grupo (
+    idGrupo INT IDENTITY(1,1) PRIMARY KEY,
+    idCurso INT,
+    idProfesor INT,
+    horario VARCHAR(50),
+    FOREIGN KEY (idCurso) REFERENCES Curso(idCurso),
+    FOREIGN KEY (idProfesor) REFERENCES Profesor(idProfesor)
+);
+
+CREATE TABLE Matricula (
+    idMatricula INT IDENTITY(1,1) PRIMARY KEY,
+    idEstudiante INT,
+    idGrupo INT,
+    fecha DATE,
+    FOREIGN KEY (idEstudiante) REFERENCES Estudiante(idEstudiante),
+    FOREIGN KEY (idGrupo) REFERENCES Grupo(idGrupo)
+);
+
+-- Estudiantes
+INSERT INTO Estudiante (nombre, correo) VALUES
+('Ana López', 'ana@gmail.com'),
+('Carlos Pérez', 'carlos@gmail.com'),
+('María Gómez', 'maria@gmail.com');
+
+-- Profesores
+INSERT INTO Profesor (nombre, especialidad) VALUES
+('Luis Rodríguez', 'Matemáticas'),
+('Sofía Herrera', 'Programación');
+
+-- Cursos
+INSERT INTO Curso (nombre, creditos) VALUES
+('Base de Datos', 4),
+('Programación Web', 3);
+
+-- Grupos (usar IDs generados automáticamente)
+INSERT INTO Grupo (idCurso, idProfesor, horario) VALUES
+(1, 1, 'Lunes 8am'),
+(2, 2, 'Martes 10am');
+
+-- Matrículas
+INSERT INTO Matricula (idEstudiante, idGrupo, fecha) VALUES
+(1, 1, '2026-04-01'),
+(2, 1, '2026-04-01'),
+(3, 2, '2026-04-02');
+
+
+-- Consulta 1: Estudiantes con sus cursos
+SELECT E.nombre AS Estudiante, C.nombre AS Curso
+FROM Matricula M
+INNER JOIN Estudiante E ON M.idEstudiante = E.idEstudiante
+INNER JOIN Grupo G ON M.idGrupo = G.idGrupo
+INNER JOIN Curso C ON G.idCurso = C.idCurso;
+
+--Consulta 2: Cantidad de estudiantes por curso
+SELECT C.nombre AS Curso, COUNT(M.idEstudiante) AS TotalEstudiantes
+FROM Curso C
+INNER JOIN Grupo G ON C.idCurso = G.idCurso
+INNER JOIN Matricula M ON G.idGrupo = M.idGrupo
+GROUP BY C.nombre;
+
+--Consulta 3: Cursos con más de 1 estudiante
+SELECT C.nombre AS Curso, COUNT(M.idEstudiante) AS TotalEstudiantes
+FROM Curso C
+INNER JOIN Grupo G ON C.idCurso = G.idCurso
+INNER JOIN Matricula M ON G.idGrupo = M.idGrupo
+GROUP BY C.nombre
+HAVING COUNT(M.idEstudiante) > 1;
+
+--Consulta 4. Profesor con más grupos
+SELECT 
+    P.nombre AS Profesor,
+    COUNT(G.idGrupo) AS TotalGrupos
+FROM Profesor P
+INNER JOIN Grupo G ON P.idProfesor = G.idProfesor
+GROUP BY P.nombre
+ORDER BY TotalGrupos DESC;
+
+
+
+
